@@ -1,14 +1,22 @@
-# <\Sigma, K, \Delta, k_{ini}, A>
-# \Sigma is a set of input symbols
-# K is a finite set of states
-# \Delta : K \times \Sigma \rightarrow K
+# A DFA is a 5-tuple
+#   <\Sigma, K, \Delta, k_{ini}, A> 
+# where
+# - \Sigma is a set of input symbols
+# - K is a finite set of states
+# - \Delta : K \times \Sigma \rightarrow K
 # is a state transition function
-# k_{ini} \in K is the initial state
-# A \subset K is a set of accept states
+# - k_{ini} \in K is the initial state
+# - A \subset K is a set of accept states
+
+# A NFA is a 5-tuple
+#   <\Sigma, K, \Delta, k_{ini}, A> 
+# similar to a DFA but
+# - \Delta : K \times \Sigma \rightarrow 2^{K}
 
 # Non-deterministic finite automata
 class NFA:
-    def __init__(self, symbols, states, transition, initial_state, final_states):
+    def __init__(self, symbols, states, transition, 
+                 initial_state, final_states):
         self.symbols = symbols 
         self.states = states
         self.transition = transition
