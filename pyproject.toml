@@ -1,0 +1,5 @@
+[tool.pyright]
+pythonVersion = "3.10"
+extraPaths = [
+    "/opt/homebrew/lib/python3.10/site-packages"
+]

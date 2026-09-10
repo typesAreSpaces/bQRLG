@@ -19,6 +19,7 @@ class NFA:
                  initial_state, final_states):
         self.symbols = symbols 
         self.states = states
+        # TODO: How to represent this?
         self.transition = transition
         self.initial_state = initial_state
         self.final_states = final_states
