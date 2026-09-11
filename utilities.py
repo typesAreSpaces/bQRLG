@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from qiskit.qasm2 import dumps
 
 from dd.autoref import BDD
-from dd.autoref import Function
+from dd.autoref import Function as Node
 
 DEBUG = True
 
@@ -17,28 +17,28 @@ def DBG(*args):
     if DEBUG:
         print(*args)
 
-def simulate(qc : QuantumCircuit, show : bool) -> None:
+def run(qc : QuantumCircuit, showPlot : bool) -> None:
     simulator = AerSimulator()
     compiled = transpile(qc, simulator)
     result = simulator.run(compiled, shots=1024).result()
 
     counts = result.get_counts()
     print(counts)
-    if show:
+    if showPlot:
         plot_histogram(counts)
         plt.show()
     return
 
-def run(qc : QuantumCircuit, runQ : bool, 
+def get_info(qc : QuantumCircuit, runQ : bool, 
         showPlot : bool, showQASM : bool) -> None:
     print(qc)
     if runQ:
-        simulate(qc, showPlot)
+        run(qc, showPlot)
     if showQASM:
         print(dumps(qc))
     return
 
-def traverse(bdd : BDD, u : Function, visited=None, depth=0) -> None:
+def traverse(bdd : BDD, u : Node, visited=None, depth=0) -> None:
     if visited is None:
         visited = set()
 
