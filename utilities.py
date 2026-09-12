@@ -38,7 +38,7 @@ def get_info(qc : QuantumCircuit, runQ : bool,
         print(dumps(qc))
     return
 
-def input_circuit(bits : list):
+def input_circuit(bits : tuple) -> QuantumCircuit:
     qc = QuantumCircuit(len(bits))
 
     for i, bit in enumerate(bits):
@@ -47,7 +47,8 @@ def input_circuit(bits : list):
 
     return qc
 
-def traverse(bdd : BDD, u : Node, onceQ, visited=None, depth=0) -> None:
+def traverse(bdd : BDD, u : Node,
+             onceQ : bool, visited=None, depth=0) -> None:
     if onceQ:
         if visited is None:
             visited = set()
