@@ -1,4 +1,5 @@
 from qiskit import QuantumCircuit as QC
+from qiskit import ClassicalRegister as CR
 from qiskit import QuantumRegister as QR
 from utilities import get_info
 from utilities import traverse
@@ -35,7 +36,7 @@ def bdd_2_qc_example1():
     f = (~x & ~y & z) | (~x & y & ~z) | (x & ~y & ~z) | (x & y)
     # traverse(bdd, f, False)
 
-    input = input_circuit([1, 1, 1])
+    input = input_circuit([1, 1, 0])
     input.barrier()
     qc = bdd_to_qc(bdd, f)
 
@@ -43,10 +44,12 @@ def bdd_2_qc_example1():
     # for the backward step
     # qc1 = qc.reverse_ops()
 
+    qc.add_register(CR(1))
     qc.measure(qc.num_qubits - 1, 0)
     qc.compose(input, front=True, qubits=range(3), inplace=True)
     get_info(qc, True, False, False)
 
+    # qc1.add_register(CR(1))
     # qc1.measure(qc1.num_qubits - 1, 0)
     # qc1.compose(input, front=True, qubits=range(3), inplace=True)
     # get_info(qc1, True, False, False)

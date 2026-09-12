@@ -37,7 +37,7 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
         queue.append(low)
         queue.append(high)
 
-    qc = QC(num_variables, 1)
+    qc = QC(num_variables)
     c_output = dict()
     fresh_var = num_variables
 
