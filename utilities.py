@@ -11,7 +11,7 @@ from qiskit.qasm2 import dumps
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 
-DEBUG = True
+DEBUG = False
 
 def DBG(*args):
     if DEBUG:
@@ -38,15 +38,24 @@ def get_info(qc : QuantumCircuit, runQ : bool,
         print(dumps(qc))
     return
 
-def traverse(bdd : BDD, u : Node, visited=None, depth=0) -> None:
-    if visited is None:
-        visited = set()
+def input_circuit(bits : list):
+    qc = QuantumCircuit(len(bits))
 
-    # Function objects are hashable
-    if u in visited:
-        return
+    for i, bit in enumerate(bits):
+        if bit == 1:
+            qc.x(i)
 
-    visited.add(u)
+    return qc
+
+def traverse(bdd : BDD, u : Node, onceQ, visited=None, depth=0) -> None:
+    if onceQ:
+        if visited is None:
+            visited = set()
+
+        if u in visited:
+            return
+
+        visited.add(u)
 
     indent = "  " * depth
 
@@ -64,6 +73,6 @@ def traverse(bdd : BDD, u : Node, visited=None, depth=0) -> None:
 
     print(indent + f"Node: {u}, variable: {var}")
     print(indent + "  low:")
-    traverse(bdd, low, visited, depth + 2)
+    traverse(bdd, low, onceQ, visited, depth + 2)
     print(indent + "  high:")
-    traverse(bdd, high, visited, depth + 2)
+    traverse(bdd, high, onceQ, visited, depth + 2)
