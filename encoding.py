@@ -37,6 +37,8 @@ class DFA:
     def __init__(self, nfa : NFA):
         self.states = nfa.states
 
+        # Encode transition from nfa using
+        # NDCs
         max_ndc = 0
         self.transition : dict[tuple[str, str], str] = dict()
         for (state, symbol), next_states in nfa.transition.items():
@@ -47,7 +49,8 @@ class DFA:
                 if max_ndc < ndc:
                     max_ndc = ndc
 
-        #self.symbols = nfa.symbols 
+        # Missing paths with NDCs
+        # are directed to the same state
         self.symbols : set[str] = set()
         for state in nfa.states:
             for symb in nfa.symbols:
@@ -55,7 +58,6 @@ class DFA:
                     symb_ndc = symb + str(ndc)
                     self.symbols.add(symb_ndc)
                     entry = (state, symb_ndc)
-                    self.symbols
                     if entry not in self.transition:
                         self.transition[entry] = state
 
@@ -73,7 +75,6 @@ class DFA:
 # for Quantum Circuits
 class EFAQ:
     def __init__(self, dfa : DFA):
-        # TODO
         self.symbols = dfa.symbols 
         self.states = dfa.states
         self.transition = dfa.transition
