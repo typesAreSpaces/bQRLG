@@ -30,8 +30,9 @@ def run(qc : QuantumCircuit, showPlot : bool) -> None:
     return
 
 def get_info(qc : QuantumCircuit, runQ : bool, 
-        showPlot : bool, showQASM : bool) -> None:
-    print(qc)
+             showCircuit : bool, showPlot : bool, showQASM : bool) -> None:
+    if showCircuit:
+        print(qc.draw(fold=-1))
     if runQ:
         run(qc, showPlot)
     if showQASM:

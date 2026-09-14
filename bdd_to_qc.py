@@ -8,9 +8,9 @@ from collections import deque
 
 from utilities import DBG
 
-# The output_bit is the size of the
-# quantum circuit
-def bdd_to_qc(bdd : BDD, u : Node) -> QC:
+# The input qubits are the first |u.support| qubits
+# the rest are ancilla bits
+def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
     T = bdd.true
     F = bdd.false
 
@@ -48,8 +48,8 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
 
         var, low, high = bdd.succ(u)
         c_output[u] = fresh_var
-        fresh_var += 1
         qc.add_register(QR(1))
+        fresh_var += 1
 
         if low == T:
             if high == T:
@@ -62,7 +62,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node > 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var], inplace=True)
-                qc.barrier()
             else:
                 DBG("Case low-1, high-?")
                 _qc = QC(3)
@@ -72,7 +71,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node > 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var, c_output[high]], inplace=True)
-                qc.barrier()
         elif low == F:
             if high == T:
                 DBG("Case low-0, high-1")
@@ -81,7 +79,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node < 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var], inplace=True)
-                qc.barrier()
             elif high == F:
                 DBG("Not possible low-0, high-0")
             else:
@@ -91,7 +88,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node < 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var, c_output[high]], inplace=True)
-                qc.barrier()
         else:
             if high == T:
                 DBG("Case low-?, high-1")
@@ -102,7 +98,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node < 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var, c_output[low]], inplace=True)
-                qc.barrier()
             elif high == F:
                 DBG("Case low-?, high-0")
                 _qc = QC(3)
@@ -111,7 +106,6 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node < 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var, c_output[low]], inplace=True)
-                qc.barrier()
             else:
                 DBG("Case low-?, high-?")
                 _qc = QC(4)
@@ -121,6 +115,30 @@ def bdd_to_qc(bdd : BDD, u : Node) -> QC:
                 if u.node < 0:
                     _qc.x(0)
                 qc.compose(_qc, [c_output[u], var, c_output[low], c_output[high]], inplace=True)
-                qc.barrier()
+
+        if addBarrierQ:
+            qc.barrier()
+
+    return qc
+
+# The input qubits are the first |u.support| qubits
+# the rest are ancilla bits
+def step(bdd : BDD, u : Node, useBlocks : bool) -> QC:
+    step_forward =  bdd_to_qc(bdd, u, False)
+    step_backward = step_forward.reverse_ops()
+    num_qubits = step_forward.num_qubits
+    qc = QC(num_qubits)
+
+    if useBlocks:
+        step_forward = step_forward.to_gate()
+        step_backward = step_backward.to_gate()
+        step_forward.name = "Step forward"
+        step_backward.name = "Step backward"
+
+    qc.add_register(QR(1))
+    qc.compose(step_forward, range(num_qubits), inplace=True)
+    qc.cx(num_qubits - 1, num_qubits)
+    qc.compose(step_backward, range(num_qubits), inplace=True)
+    qc.swap(0, num_qubits)
 
     return qc
