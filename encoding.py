@@ -15,32 +15,65 @@
 
 # Non-deterministic finite automata
 class NFA:
-    def __init__(self, symbols, states, transition, 
-                 initial_state, final_states):
+    def __init__(self, symbols : set[str], 
+                 states : set[str], transition : dict[tuple[str, str], set[str]],
+                 initial_state : str, final_states: set[str]):
         self.symbols = symbols 
         self.states = states
-        # TODO: How to represent this?
         self.transition = transition
         self.initial_state = initial_state
         self.final_states = final_states
 
+    def _print(self):
+        print(">> Symbols:", self.symbols)
+        print(">> States:", self.states)
+        print(">> Transitions:", self.transition)
+        print(">> Initial state:", self.initial_state)
+        print(">> Final states:", self.final_states)
+
 # Deterministic finite automata
 # with NDCs
 class DFA:
-    def __init__(self, nfa):
-        self.symbols = nfa.symbols 
+    def __init__(self, nfa : NFA):
         self.states = nfa.states
-        # TODO
-        self.transition = nfa.transition
+
+        max_ndc = 0
+        self.transition : dict[tuple[str, str], str] = dict()
+        for (state, symbol), next_states in nfa.transition.items():
+            ndc = 0
+            for next_state in next_states:
+                self.transition[(state, symbol+str(ndc))] = next_state
+                ndc += 1
+                if max_ndc < ndc:
+                    max_ndc = ndc
+
+        #self.symbols = nfa.symbols 
+        self.symbols : set[str] = set()
+        for state in nfa.states:
+            for symb in nfa.symbols:
+                for ndc in range(max_ndc):
+                    symb_ndc = symb + str(ndc)
+                    self.symbols.add(symb_ndc)
+                    entry = (state, symb_ndc)
+                    self.symbols
+                    if entry not in self.transition:
+                        self.transition[entry] = state
+
         self.initial_state = nfa.initial_state
         self.final_states = nfa.final_states
+
+    def _print(self):
+        print(">> Symbols:", self.symbols)
+        print(">> States:", self.states)
+        print(">> Transitions:", self.transition)
+        print(">> Initial state:", self.initial_state)
+        print(">> Final states:", self.final_states)
 
 # Encoding Finite-state Automata 
 # for Quantum Circuits
 class EFAQ:
-    def __init__(self, dfa):
+    def __init__(self, dfa : DFA):
         # TODO
-
         self.symbols = dfa.symbols 
         self.states = dfa.states
         self.transition = dfa.transition

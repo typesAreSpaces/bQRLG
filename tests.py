@@ -14,6 +14,8 @@ from utilities import input_circuit
 from bdd_to_qc import bdd_to_qc
 from bdd_to_qc import step
 
+from encoding import NFA, DFA, EFAQ
+
 def simple_qc() -> None:
     qc1 = QC(2)
     qc1.cx(0, 1)
@@ -73,3 +75,15 @@ def step_example1() -> None:
         get_info(qc, True, True, False, False)
 
     return
+
+def testing_automata():
+    delta = dict()
+    delta[('x', 'p')] = {'x'}
+    delta[('x', 'q')] = {'x', 'y'}
+    delta[('y', 'p')] = {'y'}
+    delta[('y', 'q')] = {'y'}
+    nfa1 = NFA({'p', 'q'}, {'x', 'y'}, delta, 'x', {'y'})
+    nfa1._print()
+    dfa1 = DFA(nfa1)
+    dfa1._print()
+    # efaq1 = EFAQ(dfa1)
