@@ -48,7 +48,7 @@ class NFA:
         self.num_symbols = len(symbols)
         self.num_states = len(states)
 
-    def _print(self):
+    def _print(self) -> None:
         print(">> Symbols:", self.symbols)
         print(">> States:", self.states)
         print(">> Transitions:", self.transition)
@@ -105,7 +105,7 @@ class DFA:
         self.num_symbols = nfa.num_symbols
         self.num_states = nfa.num_states
 
-    def _print(self):
+    def _print(self) -> None:
         print(">> Symbols:", self.symbols)
         print(">> States:", self.states)
         print(">> Transitions:", self.transition)
@@ -118,7 +118,7 @@ class DFA:
 # correspond to state bits, the next self.num_symbols bits correspond
 # to symbols bits
 # Observations:
-# - The EFAQ is unique up to encK and encS
+# - The EFAQ is unique up to enc_k and encS
 class EFAQ:
     def __init__(self, dfa : DFA):
         enc_raw_S : EncS = dict()
@@ -126,38 +126,37 @@ class EFAQ:
         for counter, x in enumerate(dfa.raw_symbols):
             enc_raw_S[x] = bin(counter)[2:].zfill(fill_raw_S)
 
-        encS : EncS = dict()
-        fillNDC = dfa.num_bits_ndc
-        fillS = fill_raw_S + fillNDC
+        enc_s : EncS = dict()
+        fill_NDC = dfa.num_bits_ndc
         for x in dfa.raw_symbols:
             for y in range(dfa.num_ndc):
-                encS[x+str(y)] = enc_raw_S[x] + bin(y)[2:].zfill(fillNDC)
+                enc_s[x+str(y)] = enc_raw_S[x] + bin(y)[2:].zfill(fill_NDC)
 
-        encK : EncK = dict()
-        fillK = ceil(log2(dfa.num_states))
+        enc_k : EncK = dict()
+        fill_k = ceil(log2(dfa.num_states))
         for counter, x in enumerate(dfa.states):
-            encK[x] = bin(counter)[2:].zfill(fillK)
+            enc_k[x] = bin(counter)[2:].zfill(fill_k)
 
-        DBG(">> encK", encK)
-        DBG(">> encS", encS)
+        DBG(">> enc_k", enc_k)
+        DBG(">> enc_s", enc_s)
 
-        self.symbols = {encS[x] for x in dfa.symbols}
-        self.states = {encK[x] for x in dfa.states}
+        self.symbols = {enc_s[x] for x in dfa.symbols}
+        self.states = {enc_k[x] for x in dfa.states}
 
         self.transition : EFAQDelta  = dict()
         for state in dfa.states:
             for symbol in dfa.symbols:
-                _input = encK[state] + encS[symbol]
-                _output = encK[dfa.transition[(state, symbol)]] + encS[symbol]
+                _input = enc_k[state] + enc_s[symbol]
+                _output = enc_k[dfa.transition[(state, symbol)]] + enc_s[symbol]
                 self.transition[_input] = _output
 
-        self.initial_state = encK[dfa.initial_state]
-        self.final_states = {encK[x] for x in dfa.final_states}
+        self.initial_state = enc_k[dfa.initial_state]
+        self.final_states = {enc_k[x] for x in dfa.final_states}
 
         self.num_symbols = dfa.num_symbols
         self.num_states = dfa.num_states
 
-    def _print(self):
+    def _print(self) -> None:
         print(">> Symbols:", self.symbols)
         print(">> States:", self.states)
         print(">> Transitions:", self.transition)

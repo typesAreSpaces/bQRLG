@@ -13,13 +13,13 @@ from encoding_automata import EFAQ
 
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
-def step(bdd : BDD, u : Node, useBlocks : bool) -> QC:
+def step(bdd : BDD, u : Node, use_blocks_q : bool) -> QC:
     step_forward =  bdd_to_qc(bdd, u, False)
     step_backward = step_forward.reverse_ops()
     num_qubits = step_forward.num_qubits
     qc = QC(num_qubits)
 
-    if useBlocks:
+    if use_blocks_q:
         step_forward = step_forward.to_gate()
         step_backward = step_backward.to_gate()
         step_forward.name = "Step forward"

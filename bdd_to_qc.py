@@ -67,14 +67,14 @@ def case_low_x_high_x(is_node_complemented : bool) -> QC:
 
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
-def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
+def bdd_to_qc(bdd : BDD, u : Node, add_barrier_q : bool) -> QC:
     T = bdd.true
     F = bdd.false
 
     num_variables = len(u.support)
     DBG(">> num_variables", num_variables)
     qc = QC(num_variables)
-    c_output = dict()
+    qc_output = dict()
     fresh_var = num_variables
 
     queue = deque()
@@ -103,7 +103,7 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
             continue
 
         var, low, high = bdd.succ(u)
-        c_output[u] = fresh_var
+        qc_output[u] = fresh_var
         qc.add_register(QR(1))
         fresh_var += 1
         is_node_complemented = u.node < 0
@@ -114,44 +114,44 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
             elif high == F:
                 DBG("Case low-1, high-0")
                 qc.compose(case_low_1_high_0(is_node_complemented),
-                           [c_output[u], var],
+                           [qc_output[u], var],
                            inplace=True)
             else:
                 DBG("Case low-1, high-?")
                 qc.compose(case_low_1_high_x(is_node_complemented),
-                           [c_output[u], var, c_output[high]],
+                           [qc_output[u], var, qc_output[high]],
                            inplace=True)
         elif low == F:
             if high == T:
                 DBG("Case low-0, high-1")
                 qc.compose(case_low_0_high_1(is_node_complemented),
-                           [c_output[u], var],
+                           [qc_output[u], var],
                            inplace=True)
             elif high == F:
                 DBG("Not possible low-0, high-0")
             else:
                 DBG("Case low-0, high-?")
                 qc.compose(case_low_0_high_x(is_node_complemented),
-                           [c_output[u], var, c_output[high]],
+                           [qc_output[u], var, qc_output[high]],
                            inplace=True)
         else:
             if high == T:
                 DBG("Case low-?, high-1")
                 qc.compose(case_low_x_high_1(is_node_complemented),
-                           [c_output[u], var, c_output[low]],
+                           [qc_output[u], var, qc_output[low]],
                            inplace=True)
             elif high == F:
                 DBG("Case low-?, high-0")
                 qc.compose(case_low_x_high_0(is_node_complemented),
-                           [c_output[u], var, c_output[low]],
+                           [qc_output[u], var, qc_output[low]],
                            inplace=True)
             else:
                 DBG("Case low-?, high-?")
                 qc.compose(case_low_x_high_x(is_node_complemented),
-                           [c_output[u], var, c_output[low], c_output[high]],
+                           [qc_output[u], var, qc_output[low], qc_output[high]],
                            inplace=True)
 
-        if addBarrierQ:
+        if add_barrier_q:
             qc.barrier()
 
     return qc

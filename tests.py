@@ -117,7 +117,7 @@ def testing_bqrlg() -> None:
 
     return
 
-def boolean_formula1(x : bool, y : bool, z : bool):
+def boolean_formula1(x : bool, y : bool, z : bool) -> bool:
     return x or ((not x) and y and z)
 
 def experiment_homomophism() -> None:
