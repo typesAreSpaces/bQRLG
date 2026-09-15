@@ -10,9 +10,9 @@ def main() -> int:
     # simple_qc()
     # bdd_to_qc_example1()
     # step_example1()
-    testing_automata1()
-    testing_automata2()
-    # testing_bqrlg()
+    # testing_automata1()
+    # testing_automata2()
+    testing_bqrlg()
     # experiment_homomophism()
     return 0
 

@@ -1,4 +1,4 @@
-from math import log
+from math import log2
 from math import ceil
 
 from utilities import DBG
@@ -120,11 +120,9 @@ class DFA:
 class EFAQ:
     def __init__(self, dfa : DFA):
         enc_raw_S : EncS = dict()
-        fill_raw_S = ceil(log(dfa.num_symbols)/log(2))
-        counter = 0
-        for x in dfa.raw_symbols:
+        fill_raw_S = ceil(log2(dfa.num_symbols))
+        for counter, x in enumerate(dfa.raw_symbols):
             enc_raw_S[x] = bin(counter)[2:].zfill(fill_raw_S)
-            counter += 1
 
         encS : EncS = dict()
         fillNDC = dfa.num_bits_ndc
@@ -134,11 +132,9 @@ class EFAQ:
                 encS[x+str(y)] = enc_raw_S[x] + bin(y)[2:].zfill(fillNDC)
 
         encK : EncK = dict()
-        fillK = ceil(log(dfa.num_states)/log(2))
-        counter = 0
-        for x in dfa.states:
+        fillK = ceil(log2(dfa.num_states))
+        for counter, x in enumerate(dfa.states):
             encK[x] = bin(counter)[2:].zfill(fillK)
-            counter += 1
 
         DBG(">> encK", encK)
         DBG(">> encS", encS)
