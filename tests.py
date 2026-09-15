@@ -14,7 +14,7 @@ from utilities import input_circuit
 from bdd_to_qc import bdd_to_qc
 from bdd_to_qc import step
 
-from encoding import NFA, DFA, EFAQ
+from encoding_automata import NFA, DFA, EFAQ
 
 def simple_qc() -> None:
     qc1 = QC(2)
@@ -46,7 +46,7 @@ def bdd_formula() -> tuple[BDD, Node]:
     # traverse(bdd, f, False)
     return (bdd, f)
 
-def bdd_2_qc_example1() -> None:
+def bdd_to_qc_example1() -> None:
     bdd, f = bdd_formula()
 
     for x in product([0, 1], repeat=3):
@@ -77,12 +77,17 @@ def step_example1() -> None:
     return
 
 def testing_automata():
+    symbols = {'p', 'q'}
+    states = {'x', 'y'}
     delta = dict()
     delta[('x', 'p')] = {'x'}
     delta[('x', 'q')] = {'x', 'y'}
     delta[('y', 'p')] = {'y'}
     delta[('y', 'q')] = {'y'}
-    nfa1 = NFA({'p', 'q'}, {'x', 'y'}, delta, 'x', {'y'})
+    initial_state = 'x'
+    final_states = {'y'}
+
+    nfa1 = NFA(symbols, states, delta, initial_state, final_states)
     dfa1 = DFA(nfa1)
     efaq1 = EFAQ(dfa1)
     efaq1._print()
