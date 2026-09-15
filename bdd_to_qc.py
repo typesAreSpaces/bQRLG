@@ -120,25 +120,3 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
             qc.barrier()
 
     return qc
-
-# The input qubits are the first |u.support| qubits
-# the rest are ancilla bits
-def step(bdd : BDD, u : Node, useBlocks : bool) -> QC:
-    step_forward =  bdd_to_qc(bdd, u, False)
-    step_backward = step_forward.reverse_ops()
-    num_qubits = step_forward.num_qubits
-    qc = QC(num_qubits)
-
-    if useBlocks:
-        step_forward = step_forward.to_gate()
-        step_backward = step_backward.to_gate()
-        step_forward.name = "Step forward"
-        step_backward.name = "Step backward"
-
-    qc.add_register(QR(1))
-    qc.compose(step_forward, range(num_qubits), inplace=True)
-    qc.cx(num_qubits - 1, num_qubits)
-    qc.compose(step_backward, range(num_qubits), inplace=True)
-    qc.swap(0, num_qubits)
-
-    return qc

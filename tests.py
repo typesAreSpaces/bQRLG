@@ -12,7 +12,7 @@ from utilities import traverse
 from utilities import input_circuit
 
 from bdd_to_qc import bdd_to_qc
-from bdd_to_qc import step
+from bqrlg import step
 
 from encoding_automata import NFA, DFA, EFAQ
 
@@ -76,7 +76,7 @@ def step_example1() -> None:
 
     return
 
-def testing_automata():
+def testing_automata1() -> None:
     symbols = {'p', 'q'}
     states = {'x', 'y'}
     delta = dict()
@@ -87,7 +87,54 @@ def testing_automata():
     initial_state = 'x'
     final_states = {'y'}
 
-    nfa1 = NFA(symbols, states, delta, initial_state, final_states)
-    dfa1 = DFA(nfa1)
-    efaq1 = EFAQ(dfa1)
-    efaq1._print()
+    nfa = NFA(symbols, states, delta, initial_state, final_states)
+    dfa = DFA(nfa)
+    efaq = EFAQ(dfa)
+    efaq._print()
+
+    return
+
+def testing_automata2() -> None:
+    symbols = {'p', 'q'}
+    states = {'x', 'y'}
+    delta = dict()
+    delta[('x', 'p')] = {'x'}
+    delta[('x', 'q')] = {'x', 'y'}
+    delta[('y', 'p')] = {'y'}
+    delta[('y', 'q')] = {'y'}
+    initial_state = 'x'
+    final_states = {'x'}
+
+    nfa = NFA(symbols, states, delta, initial_state, final_states)
+    dfa = DFA(nfa)
+    efaq = EFAQ(dfa)
+    efaq._print()
+
+    return
+
+def testing_bqrlg() -> None:
+    print("TODO")
+
+    return
+
+def boolean_formula1(x : bool, y : bool, z : bool):
+    return x or ((not x) and y and z)
+
+def experiment_homomophism() -> None:
+    for x in [False, True]:
+        for y in [False, True]:
+            for z in [False, True]:
+                f = boolean_formula1(x, y, z)
+                print(f">> {x},{y},{z} | {f}")
+    print("")
+    for x in [False, True]:
+        for y in [False, True]:
+            for z in [False, True]:
+                f = not(boolean_formula1(not(x), not(y), not(z)))
+                print(f">> {x},{y},{z} | {f}")
+    print("")
+    for x in [False, True]:
+        for y in [False, True]:
+            for z in [False, True]:
+                f = not(boolean_formula1(not(x), y, not(z)))
+                print(f">> {x},{y},{z} | {f}")
