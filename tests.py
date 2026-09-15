@@ -40,8 +40,8 @@ def bdd_formula() -> tuple[BDD, Node]:
     y = bdd.var('y')
     z = bdd.var('z')
 
-    f = (~x & y & z) | x
-    # f = (~x & y & z) | (x & ((~y & z) | y))
+    # f = (~x & y & z) | x
+    f = (~x & y & z) | (x & ((~y & z) | y))
     # f = (~x & ~y & z) | (~x & y & ~z) | (x & ~y & ~z) | (x & y)
     # traverse(bdd, f, False)
     return (bdd, f)
@@ -72,7 +72,7 @@ def step_example1() -> None:
         qc.add_register(CR(1))
         qc.measure(0, 0)
         qc.compose(input, front=True, qubits=range(3), inplace=True)
-        get_info(qc, True, True, False, False)
+        get_info(qc, True, False, False, False)
 
     return
 

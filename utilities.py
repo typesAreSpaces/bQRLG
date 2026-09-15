@@ -11,7 +11,7 @@ from qiskit.qasm2 import dumps
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 
-DEBUG = True
+DEBUG = False
 
 def DBG(*args):
     if DEBUG:

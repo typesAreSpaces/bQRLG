@@ -1,3 +1,6 @@
+from math import log2
+from math import ceil
+
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 
@@ -42,6 +45,35 @@ def step(bdd : BDD, u : Node, useBlocks : bool) -> QC:
 # then we should take the 
 # m := max(ancilla_bits(BDD_1), \cdots, ancilla_bits(BDD_n))
 # to allocate the m qubits for this
+
+# TODO Modify this function 
+# to handle the image of \Delta
+def truth_table_to_bdd(values: list[bool]):
+    n = ceil(log2(len(values))) 
+
+    bdd = BDD()
+    variables = [f'x{i}' for i in range(n)]
+    bdd.declare(*variables)
+
+    u = bdd.false
+
+    for i, value in enumerate(values):
+        if not value:
+            continue
+
+        bits = format(i, f'0{n}b')
+
+        cube = bdd.true
+
+        for var, bit in zip(variables, bits):
+            if bit == '1':
+                cube &= bdd.var(var)
+            else:
+                cube &= ~bdd.var(var)
+
+        u |= cube
+
+    return bdd, u
 
 # TODO Keep working here
 def bqrlg(efag : EFAQ, bound : int) -> QC:

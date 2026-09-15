@@ -8,6 +8,14 @@ from collections import deque
 
 from utilities import DBG
 
+def case_low_1_high_0(is_node_complemented : bool) -> QC:
+    _qc = QC(2)
+    # _qc.x(0)
+    _qc.cx(1, 0)
+    if is_node_complemented:
+        _qc.x(0)
+    return _qc
+
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
 def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
@@ -16,6 +24,9 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
 
     num_variables = len(u.support)
     DBG(">> num_variables", num_variables)
+    qc = QC(num_variables)
+    c_output = dict()
+    fresh_var = num_variables
 
     queue = deque()
     todo = []
@@ -37,10 +48,6 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
         queue.append(low)
         queue.append(high)
 
-    qc = QC(num_variables)
-    c_output = dict()
-    fresh_var = num_variables
-
     while todo:
         u = todo.pop()
         if u == T or u == F:
@@ -56,12 +63,8 @@ def bdd_to_qc(bdd : BDD, u : Node, addBarrierQ : bool) -> QC:
                 DBG("Not possible low-1, high-1")
             elif high == F:
                 DBG("Case low-1, high-0")
-                _qc = QC(2)
-                # _qc.x(0)
-                _qc.cx(1, 0)
-                if u.node > 0:
-                    _qc.x(0)
-                qc.compose(_qc, [c_output[u], var], inplace=True)
+                qc.compose(case_low_1_high_0(u.node > 0), 
+                           [c_output[u], var], inplace=True)
             else:
                 DBG("Case low-1, high-?")
                 _qc = QC(3)

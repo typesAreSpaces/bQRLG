@@ -78,7 +78,7 @@ class DFA:
                 if max_ndc < ndc:
                     max_ndc = 2*max_ndc
                     num_bits_ndc += 1
-        self.raw_symbols = nfa.symbols
+
         self.num_ndc = max_ndc
         self.num_bits_ndc = num_bits_ndc
 
@@ -94,6 +94,8 @@ class DFA:
                     if entry not in self.transition:
                         self.transition[entry] = state
         # ------------------------------------------------------------
+
+        self.raw_symbols = nfa.symbols
 
         self.initial_state = nfa.initial_state
         self.final_states = nfa.final_states
