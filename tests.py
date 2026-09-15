@@ -83,7 +83,6 @@ def testing_automata():
     delta[('y', 'p')] = {'y'}
     delta[('y', 'q')] = {'y'}
     nfa1 = NFA({'p', 'q'}, {'x', 'y'}, delta, 'x', {'y'})
-    nfa1._print()
     dfa1 = DFA(nfa1)
-    dfa1._print()
-    # efaq1 = EFAQ(dfa1)
+    efaq1 = EFAQ(dfa1)
+    efaq1._print()

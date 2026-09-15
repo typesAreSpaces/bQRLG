@@ -1,3 +1,8 @@
+from math import log
+from math import ceil
+
+from utilities import DBG
+
 # A DFA is a 5-tuple
 #   <\Sigma, K, \Delta, k_{ini}, A> 
 # where
@@ -15,8 +20,8 @@
 
 # Non-deterministic finite automata
 class NFA:
-    def __init__(self, symbols : set[str], 
-                 states : set[str], transition : dict[tuple[str, str], set[str]],
+    def __init__(self, symbols : set[str], states : set[str], 
+                 transition : dict[tuple[str, str], set[str]],
                  initial_state : str, final_states: set[str]):
         self.symbols = symbols 
         self.states = states
@@ -75,8 +80,42 @@ class DFA:
 # for Quantum Circuits
 class EFAQ:
     def __init__(self, dfa : DFA):
-        self.symbols = dfa.symbols 
-        self.states = dfa.states
-        self.transition = dfa.transition
-        self.initial_state = dfa.initial_state
-        self.final_states = dfa.final_states
+        encS : dict[str, str] = dict()
+        _fillS = ceil(log(len(dfa.symbols))/log(2))
+        counter = 0
+        for x in dfa.symbols:
+            encS[x] = bin(counter)[2:].zfill(_fillS)
+            counter += 1
+
+        encK : dict[str, str] = dict()
+        _fillK = ceil(log(len(dfa.states))/log(2))
+        counter = 0
+        for x in dfa.states:
+            encK[x] = bin(counter)[2:].zfill(_fillK)
+            counter += 1
+
+        # encK = {'y': '1', 'x': '0'}
+        # encS = {'q1': '11', 'p0': '00', 'p1': '01', 'q0': '10'}
+
+        DBG(">> encK", encK)
+        DBG(">> encS", encS)
+
+        self.symbols = {encS[x] for x in dfa.symbols}
+        self.states = {encK[x] for x in dfa.states}
+
+        self.transition : dict[str, str] = dict()
+        for state in dfa.states:
+            for symbol in dfa.symbols:
+                _input = encK[state] + encS[symbol]
+                _output = encK[dfa.transition[(state, symbol)]] + encS[symbol]
+                self.transition[_input] = _output
+
+        self.initial_state = encK[dfa.initial_state]
+        self.final_states = {encK[x] for x in dfa.final_states}
+
+    def _print(self):
+        print(">> Symbols:", self.symbols)
+        print(">> States:", self.states)
+        print(">> Transitions:", self.transition)
+        print(">> Initial state:", self.initial_state)
+        print(">> Final states:", self.final_states)
