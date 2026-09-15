@@ -118,7 +118,7 @@ class DFA:
 # correspond to state bits, the next self.num_symbols bits correspond
 # to symbols bits
 # Observations:
-# - The EFAQ is unique up to enc_k and encS
+# - The EFAQ is unique up to enc_k and enc_s
 class EFAQ:
     def __init__(self, dfa : DFA):
         enc_raw_S : EncS = dict()
