@@ -41,8 +41,8 @@ def bdd_formula() -> tuple[BDD, Node]:
     z = bdd.var('z')
 
     # f = (~x & y & z) | x
-    f = (~x & y & z) | (x & ((~y & z) | y))
-    # f = (~x & ~y & z) | (~x & y & ~z) | (x & ~y & ~z) | (x & y)
+    # f = (~x & y & z) | (x & ((~y & z) | y))
+    f = (~x & ~y & z) | (~x & y & ~z) | (x & ~y & ~z) | (x & y)
     # traverse(bdd, f, False)
     return (bdd, f)
 
