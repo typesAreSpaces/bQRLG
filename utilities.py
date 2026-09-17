@@ -11,6 +11,8 @@ from qiskit.qasm2 import dumps
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 
+from itertools import product
+
 DEBUG = False
 
 def DBG(*args):
@@ -78,3 +80,14 @@ def traverse(bdd : BDD, u : Node,
     traverse(bdd, low, once_q, visited, depth + 2)
     print(indent + "  high:")
     traverse(bdd, high, once_q, visited, depth + 2)
+
+def bdd_evaluate_all(bdd : BDD, node : Node) -> None:
+    variables = list(bdd.vars)
+
+    for values in product([False, True], repeat=len(variables)):
+        assignment = dict(zip(variables, values))
+        result = bdd.let(assignment, node)
+
+        value = result == bdd.true
+
+        print(f"{assignment} -> {value}")

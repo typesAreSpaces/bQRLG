@@ -11,6 +11,8 @@ from bdd_to_qc import bdd_to_qc
 
 from encoding_automata import EFAQ
 
+from utilities import DBG
+
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
 def step(bdd : BDD, u : Node, use_blocks_q : bool) -> QC:
@@ -43,37 +45,42 @@ def step(bdd : BDD, u : Node, use_blocks_q : bool) -> QC:
 # Observations:
 # - Suppose we obtain n BDDs, i.e., BDD_1, \cdots, BDD_n, 
 # then we should take the 
-# m := max(ancilla_bits(BDD_1), \cdots, ancilla_bits(BDD_n))
+# m := max(ancilla_bits(BDD_1), \dots, ancilla_bits(BDD_n))
 # to allocate the m qubits for this
 
-# TODO Modify this function 
-# to handle the image of \Delta
-def truth_table_to_bdd(values: list[bool]):
-    n = ceil(log2(len(values))) 
+def delta_to_bdds(efaq : EFAQ) -> tuple[BDD, list[Node]]:
+    n = efaq.num_bits_states
+    num_vars = efaq.num_bits_states\
+            + efaq.num_bits_symbols\
+            + efaq.num_bits_ndcs
 
     bdd = BDD()
-    variables = [f'x{i}' for i in range(n)]
+    variables = [f'x{i}' for i in range(num_vars)]
     bdd.declare(*variables)
 
-    u = bdd.false
+    bdds = [bdd.false for _ in range(n)]
 
-    for i, value in enumerate(values):
-        if not value:
-            continue
+    # Iterate over each row of efaq.delta
+    # i.e., efaq.delta(_input) = _output
+    for _input, _output in efaq.delta.items():
+        _output = _output[:n]
 
-        bits = format(i, f'0{n}b')
+        # Update the i^{th} bdd
+        for i, bit_k in enumerate(_output):
+            if bit_k == '0':
+                continue
 
-        cube = bdd.true
+            cube = bdd.true
 
-        for var, bit in zip(variables, bits):
-            if bit == '1':
-                cube &= bdd.var(var)
-            else:
-                cube &= ~bdd.var(var)
+            for var, bit in zip(variables, _input):
+                if bit == '1':
+                    cube &= bdd.var(var)
+                else:
+                    cube &= ~bdd.var(var)
 
-        u |= cube
+            bdds[i] |= cube
 
-    return bdd, u
+    return (bdd, bdds)
 
 # TODO Keep working here
 def bqrlg(efag : EFAQ, bound : int) -> QC:

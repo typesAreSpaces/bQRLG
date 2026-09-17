@@ -10,9 +10,12 @@ from itertools import product
 from utilities import get_info
 from utilities import traverse
 from utilities import input_circuit
+from utilities import bdd_evaluate_all
 
 from bdd_to_qc import bdd_to_qc
+
 from bqrlg import step
+from bqrlg import delta_to_bdds
 
 from encoding_automata import NFA, DFA, EFAQ
 
@@ -51,12 +54,12 @@ def bdd_to_qc_example1() -> None:
 
     for x in product([0, 1], repeat=3):
         print(f">> Input {x}")
-        input = input_circuit(x)
-        input.barrier()
+        _input = input_circuit(x)
+        _input.barrier()
         qc = bdd_to_qc(bdd, f, True)
         qc.add_register(CR(1))
         qc.measure(qc.num_qubits - 1, 0)
-        qc.compose(input, front=True, qubits=range(3), inplace=True)
+        qc.compose(_input, front=True, qubits=range(3), inplace=True)
         get_info(qc, True, True, False, False)
 
     return
@@ -66,17 +69,17 @@ def step_example1() -> None:
 
     for x in product([0, 1], repeat=3):
         print(f">> Input {x}")
-        input = input_circuit(x)
-        input.barrier()
+        _input = input_circuit(x)
+        _input.barrier()
         qc = step(bdd, f, True)
         qc.add_register(CR(1))
         qc.measure(0, 0)
-        qc.compose(input, front=True, qubits=range(3), inplace=True)
+        qc.compose(_input, front=True, qubits=range(3), inplace=True)
         get_info(qc, True, False, False, False)
 
     return
 
-def testing_automata1() -> None:
+def efaq1() -> EFAQ:
     symbols = {'p', 'q'}
     states = {'x', 'y'}
     delta = dict()
@@ -89,12 +92,15 @@ def testing_automata1() -> None:
 
     nfa = NFA(symbols, states, delta, initial_state, final_states)
     dfa = DFA(nfa)
-    efaq = EFAQ(dfa)
-    efaq._print()
+    efaq = EFAQ(dfa, 
+                {'p': '0', 'q': '1'}, 
+                {'x': '0', 'y': '1'},
+                {('x', 'p0'): 'x', ('x', 'q0'): 'x', ('x', 'q1'): 'y',
+                 ('y', 'p0'): 'y', ('y', 'q0'): 'y', ('x', 'p1'): 'x', 
+                 ('y', 'p1'): 'y', ('y', 'q1'): 'y'})
+    return efaq
 
-    return
-
-def testing_automata2() -> None:
+def efaq2() -> EFAQ:
     symbols = {'p', 'q'}
     states = {'x', 'y'}
     delta = dict()
@@ -108,8 +114,24 @@ def testing_automata2() -> None:
     nfa = NFA(symbols, states, delta, initial_state, final_states)
     dfa = DFA(nfa)
     efaq = EFAQ(dfa)
-    efaq._print()
 
+    return efaq
+
+def testing_automata1() -> None:
+    efaq1()._print()
+
+    return
+
+def testing_automata2() -> None:
+    efaq2()._print()
+
+    return
+
+def testing_delta_to_bdds() -> None:
+    efaq = efaq1()
+    (a, b) = delta_to_bdds(efaq)
+    # traverse(a, b[0], True)
+    bdd_evaluate_all(a, b[0])
     return
 
 def testing_bqrlg() -> None:
