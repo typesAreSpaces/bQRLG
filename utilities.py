@@ -31,8 +31,8 @@ def run(qc : QC, show_plot : bool) -> None:
         plt.show()
     return
 
-def get_info(qc : QC, run_q : bool, 
-             show_circuit : bool, show_plot : bool, show_qasm : bool) -> None:
+def get_info(qc : QC, run_q : bool, show_circuit : bool,
+             show_plot : bool, show_qasm : bool) -> None:
     if show_circuit:
         print(qc.draw(fold=-1))
     if run_q:

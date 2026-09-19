@@ -67,6 +67,7 @@ def case_low_x_high_x(is_node_complemented : bool) -> QC:
 
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
+# The output bit in qc.num_qubits - 1
 def bdd_to_qc(bdd : BDD, u : Node, add_barrier_q : bool) -> QC:
     T = bdd.true
     F = bdd.false

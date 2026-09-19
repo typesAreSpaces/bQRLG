@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit as QC
-from qiskit import ClassicalRegister as CR
 from qiskit import QuantumRegister as QR
+from qiskit import ClassicalRegister as CR
 
 from dd.autoref import BDD
 from dd.autoref import Function as Node
@@ -14,8 +14,9 @@ from utilities import bdd_evaluate_all
 
 from bdd_to_qc import bdd_to_qc
 
-from bqrlg import step
+from bqrlg import step_forward_backward
 from bqrlg import delta_to_bdds
+from bqrlg import bqrlg_parallel
 
 from encoding_automata import NFA, DFA, EFAQ
 
@@ -71,7 +72,7 @@ def step_example1() -> None:
         print(f">> Input {x}")
         _input = input_circuit(x)
         _input.barrier()
-        qc = step(bdd, f, True)
+        qc = step_forward_backward(bdd, f, True)
         qc.add_register(CR(1))
         qc.measure(0, 0)
         qc.compose(_input, front=True, qubits=range(3), inplace=True)
@@ -130,12 +131,15 @@ def testing_automata2() -> None:
 def testing_delta_to_bdds() -> None:
     efaq = efaq1()
     (a, b) = delta_to_bdds(efaq)
-    # traverse(a, b[0], True)
+    # traverse(a, b[-1], True)
     bdd_evaluate_all(a, b[0])
+
     return
 
-def testing_bqrlg() -> None:
-    print("TODO")
+def testing_bqrlg_parrallel() -> None:
+    efaq = efaq1()
+    qc = bqrlg_parallel(efaq, 2, True)
+    get_info(qc, True, True, True, False)
 
     return
 

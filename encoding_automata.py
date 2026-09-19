@@ -25,7 +25,7 @@ EFAQDelta : TypeAlias = dict[CBState, CBState]
 # - \Sigma is a set of input symbols
 # - K is a finite set of states
 # - \Delta : K \times \Sigma \rightarrow K
-# is a state delta function
+# is a state transition function
 # - k_{ini} \in K is the initial state
 # - A \subset K is a set of accept states
 
