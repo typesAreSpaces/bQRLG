@@ -6,7 +6,7 @@ from qiskit import QuantumRegister as QR
 
 from collections import deque
 
-from utilities import DBG
+from .utilities import DBG
 
 def case_low_1_high_0(is_node_complemented : bool) -> QC:
     qc = QC(2)

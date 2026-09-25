@@ -7,18 +7,18 @@ from dd.autoref import Function as Node
 
 from itertools import product
 
-from utilities import get_info
-from utilities import traverse
-from utilities import input_circuit
-from utilities import bdd_evaluate_all
+from .utilities import get_info
+from .utilities import traverse
+from .utilities import input_circuit
+from .utilities import bdd_evaluate_all
 
-from bdd_to_qc import bdd_to_qc
+from .bdd_to_qc import bdd_to_qc
 
-from bqrlg import step_forward_backward
-from bqrlg import delta_to_bdds
-from bqrlg import bqrlg_parallel
+from .bqrlg import step_forward_backward
+from .bqrlg import delta_to_bdds
+from .bqrlg import bqrlg_parallel
 
-from encoding_automata import NFA, DFA, EFAQ
+from .encoding_automata import NFA, DFA, EFAQ
 
 def simple_qc() -> None:
     qc1 = QC(2)
@@ -136,10 +136,11 @@ def testing_delta_to_bdds() -> None:
 
     return
 
-def testing_bqrlg_parrallel() -> None:
+# At most n = 8
+def testing_bqrlg_parrallel(n : int) -> None:
     efaq = efaq1()
-    qc = bqrlg_parallel(efaq, 2, True)
-    get_info(qc, True, True, True, False)
+    qc = bqrlg_parallel(efaq, n, True)
+    get_info(qc, True, True, False, False)
 
     return
 

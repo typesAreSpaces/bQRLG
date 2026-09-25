@@ -1,7 +1,7 @@
 from math import log2
 from math import ceil
 
-from utilities import DBG
+from .utilities import DBG
 
 from typing import TypeAlias
 

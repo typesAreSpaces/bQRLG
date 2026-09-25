@@ -1,4 +1,7 @@
-FILE=main.py
+.PHONY: run sync
 
-all:
-	python3.10 ${FILE}
+sync:
+	uv sync
+
+run:
+	uv run bqrlg

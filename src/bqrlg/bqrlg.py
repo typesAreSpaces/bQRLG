@@ -8,11 +8,11 @@ from qiskit import QuantumCircuit as QC
 from qiskit import QuantumRegister as QR
 from qiskit import ClassicalRegister as CR
 
-from bdd_to_qc import bdd_to_qc
+from .bdd_to_qc import bdd_to_qc
 
-from encoding_automata import EFAQ
+from .encoding_automata import EFAQ
 
-from utilities import DBG
+from .utilities import DBG
 
 # The input qubits are the first |u.support| qubits
 # the rest are ancilla bits
