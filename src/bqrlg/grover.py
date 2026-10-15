@@ -11,7 +11,7 @@ from math import pi
 # which has the same physical effect
 # as the operator 2 |0><0| - I
 # since the difference is a global phase
-def Diffuser(n : int) -> QC:
+def diffuser(n : int) -> QC:
     qc = QC(n)
 
     qc.h(range(n))
@@ -34,10 +34,14 @@ def Diffuser(n : int) -> QC:
 
     return qc
 
+# TODO
+def oracle_accepting_state() -> QC:
+    return QC(1)
+
 # --------------
 # Grover Circuit
 # --------------
-def Grover(oracle : QC) -> QC:
+def grover_step(oracle : QC) -> QC:
     n = oracle.num_qubits - 1
     qc = QC(n+1, n)
     num_iter = floor(pi*sqrt((2**n))/4)
@@ -53,10 +57,7 @@ def Grover(oracle : QC) -> QC:
         # Step 2: Oracle
         qc.compose(oracle, inplace=True)
         # Step 3: Diffuser
-        qc.compose(Diffuser(n), qubits=range(n), inplace=True)
+        qc.compose(diffuser(n), qubits=range(n), inplace=True)
         i = i + 1
-
-    # Step 4: Measure
-    # qc.measure(range(n), range(n))
 
     return qc

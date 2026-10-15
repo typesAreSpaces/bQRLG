@@ -118,18 +118,12 @@ def efaq2() -> EFAQ:
 
     return efaq
 
-def testing_automata1() -> None:
-    efaq1()._print()
+def print_automata(efaq : EFAQ) -> None:
+    efaq._print()
 
     return
 
-def testing_automata2() -> None:
-    efaq2()._print()
-
-    return
-
-def testing_delta_to_bdds() -> None:
-    efaq = efaq1()
+def testing_delta_to_bdds(efaq : EFAQ) -> None:
     (a, b) = delta_to_bdds(efaq)
     # traverse(a, b[-1], True)
     bdd_evaluate_all(a, b[0])
@@ -137,10 +131,11 @@ def testing_delta_to_bdds() -> None:
     return
 
 # At most n = 8
-def testing_bqrlg_parrallel(n : int) -> None:
-    efaq = efaq1()
-    qc = bqrlg_parallel(efaq, n, True)
-    get_info(qc, True, True, False, False)
+def testing_bqrlg_parrallel(efaq : EFAQ,
+                            n : int,
+                            enable_grover : bool) -> None:
+    qc = bqrlg_parallel(efaq, n, True, enable_grover)
+    get_info(qc, True, True, True, False)
 
     return
 

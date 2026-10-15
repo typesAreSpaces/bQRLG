@@ -26,3 +26,8 @@ pythonVersion = "3.11"
 venvPath = "."
 venv = ".venv"
 extraPaths = ["src"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.1",
+]

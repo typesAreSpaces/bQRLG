@@ -76,7 +76,8 @@ def delta_to_bdds(efaq : EFAQ) -> tuple[BDD, list[Node]]:
 # - Fig. 11 from the original paper suggest the working bits
 # for each BDD are placed in parallel
 def bqrlg_parallel(efaq : EFAQ, bound : int,
-                   add_barrier_q : bool = False) -> QC:
+                   add_barrier_q : bool = False,
+                   enable_grover : bool = False) -> QC:
     (bdd, formulas) = delta_to_bdds(efaq)
 
     forward_qcs = [bdd_to_qc(bdd, formula, False) for formula in formulas]

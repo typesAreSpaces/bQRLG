@@ -1,7 +1,11 @@
-.PHONY: run sync
+.PHONY: run sync lint
+
+run:
+	uv run bqrlg
 
 sync:
 	uv sync
 
-run:
-	uv run bqrlg
+lint:
+	uv run ruff check . --fix
+	uv run ruff format .
