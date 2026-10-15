@@ -1,25 +1,23 @@
-from qiskit import QuantumCircuit as QC
-
-from qiskit_aer import AerSimulator
-from qiskit import transpile
-
-from qiskit.visualization import plot_histogram
-import matplotlib.pyplot as plt
-
-from qiskit.qasm2 import dumps
-
-from dd.autoref import BDD
-from dd.autoref import Function as Node
-
 from itertools import product
 
+import matplotlib.pyplot as plt
+from dd.autoref import BDD
+from dd.autoref import Function as Node
+from qiskit import QuantumCircuit as QC
+from qiskit import transpile
+from qiskit.qasm2 import dumps
+from qiskit.visualization import plot_histogram
+from qiskit_aer import AerSimulator
+
 DEBUG = False
+
 
 def DBG(*args):
     if DEBUG:
         print(*args)
 
-def run(qc : QC, show_plot : bool) -> None:
+
+def run(qc: QC, show_plot: bool) -> None:
     simulator = AerSimulator()
     compiled = transpile(qc, simulator)
     result = simulator.run(compiled, shots=1024).result()
@@ -29,19 +27,20 @@ def run(qc : QC, show_plot : bool) -> None:
     if show_plot:
         plot_histogram(counts)
         plt.show()
-    return
 
-def get_info(qc : QC, run_q : bool, show_circuit : bool,
-             show_plot : bool, show_qasm : bool) -> None:
+
+def get_info(
+    qc: QC, run_q: bool, show_circuit: bool, show_plot: bool, show_qasm: bool
+) -> None:
     if show_circuit:
         print(qc.draw(fold=-1))
     if run_q:
         run(qc, show_plot)
     if show_qasm:
         print(dumps(qc))
-    return
 
-def input_circuit(bits : tuple) -> QC:
+
+def input_circuit(bits: tuple) -> QC:
     qc = QC(len(bits))
 
     for i, bit in enumerate(bits):
@@ -50,8 +49,8 @@ def input_circuit(bits : tuple) -> QC:
 
     return qc
 
-def traverse(bdd : BDD, u : Node,
-             once_q : bool, visited=None, depth=0) -> None:
+
+def traverse(bdd: BDD, u: Node, once_q: bool, visited=None, depth=0) -> None:
     if once_q:
         if visited is None:
             visited = set()
@@ -81,7 +80,8 @@ def traverse(bdd : BDD, u : Node,
     print(indent + "  high:")
     traverse(bdd, high, once_q, visited, depth + 2)
 
-def bdd_evaluate_all(bdd : BDD, node : Node) -> None:
+
+def bdd_evaluate_all(bdd: BDD, node: Node) -> None:
     variables = list(bdd.vars)
 
     for values in product([False, True], repeat=len(variables)):

@@ -1,8 +1,7 @@
+from math import floor, pi, sqrt
+
 from qiskit import QuantumCircuit as QC
 
-from math import sqrt
-from math import floor
-from math import pi
 
 # ------------------
 # Diffusion Operator
@@ -11,20 +10,20 @@ from math import pi
 # which has the same physical effect
 # as the operator 2 |0><0| - I
 # since the difference is a global phase
-def diffuser(n : int) -> QC:
+def diffuser(n: int) -> QC:
     qc = QC(n)
 
     qc.h(range(n))
-    qc.barrier() 
-    
+    qc.barrier()
+
     qc.x(range(n))
-    qc.barrier() 
+    qc.barrier()
 
     ## Multi controlled-Z
-    qc.h(n-1)
-    qc.mcx(list(range(n-1)), n-1)
-    qc.h(n-1)
-    qc.barrier() 
+    qc.h(n - 1)
+    qc.mcx(list(range(n - 1)), n - 1)
+    qc.h(n - 1)
+    qc.barrier()
 
     qc.x(range(n))
     qc.barrier()
@@ -34,24 +33,26 @@ def diffuser(n : int) -> QC:
 
     return qc
 
+
 # TODO
 def oracle_accepting_state() -> QC:
     return QC(1)
 
+
 # --------------
 # Grover Circuit
 # --------------
-def grover_step(oracle : QC) -> QC:
+def grover_step(oracle: QC) -> QC:
     n = oracle.num_qubits - 1
-    qc = QC(n+1, n)
-    num_iter = floor(pi*sqrt((2**n))/4)
+    qc = QC(n + 1, n)
+    num_iter = floor(pi * sqrt(2**n) / 4)
 
     # Step 1: Uniform superposition
     qc.h(range(n))
 
     qc.x(n)
     qc.h(n)
-    
+
     i = 0
     while i < num_iter:
         # Step 2: Oracle
