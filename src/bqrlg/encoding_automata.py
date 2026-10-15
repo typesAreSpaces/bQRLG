@@ -81,7 +81,7 @@ class DFA:
         for (state, symbol), next_states in nfa.delta.items():
             for ndc, next_state in enumerate(next_states):
                 self.delta[(state, symbol + str(ndc))] = next_state
-                if max_ndc < ndc + 1:
+                if max_ndc <= ndc:
                     max_ndc = 2 * max_ndc
                     num_bits_ndcs += 1
 

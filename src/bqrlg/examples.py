@@ -132,7 +132,7 @@ def testing_delta_to_bdds(efaq: EFAQ) -> None:
 # At most n = 8
 def testing_bqrlg_parrallel(efaq: EFAQ, n: int, enable_grover: bool = False) -> None:
     qc = bqrlg_parallel(efaq, n, True, enable_grover)
-    get_info(qc, True, True, False, False)
+    get_info(qc, True, True, True, False)
 
 
 def boolean_formula1(x: bool, y: bool, z: bool) -> bool:
