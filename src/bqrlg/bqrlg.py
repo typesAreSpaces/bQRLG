@@ -70,8 +70,15 @@ def delta_to_bdds(efaq: EFAQ) -> tuple[BDD, list[Node]]:
 # - Fig. 11 from the original paper suggest the working bits
 # for each BDD are placed in parallel
 def bqrlg_parallel(
-    efaq: EFAQ, bound: int, add_barrier_q: bool = False, enable_grover: bool = False
+    efaq: EFAQ,
+    bound: int,
+    add_barrier_q: bool = False,
+    enable_grover: bool = False,
+    enable_fnr: bool = False,
 ) -> QC:
+    if enable_grover and enable_fnr:
+        raise ValueError("option_a and option_b cannot both be True")
+
     (bdd, formulas) = delta_to_bdds(efaq)
 
     forward_qcs = [bdd_to_qc(bdd, formula, False) for formula in formulas]
@@ -79,19 +86,17 @@ def bqrlg_parallel(
 
     num_bits_states = efaq.num_bits_states
     # assert num_bits_states == len(forward_qcs)
-    num_bits_input = efaq.num_bits_states + efaq.num_bits_symbols + efaq.num_bits_ndcs
+    num_bits_input = num_bits_states + efaq.num_bits_symbols + efaq.num_bits_ndcs
     curr_total = num_bits_states
     position_working_bits = []
     for qc in forward_qcs:
         working_bits = qc.num_qubits - num_bits_input
         position_working_bits.append(range(curr_total, curr_total + working_bits))
         curr_total += working_bits
-    print(">> ", position_working_bits)
 
     # The first efaq.num_bits_states are for encoding the state
     # The rest are working bits for each forward_qcs
     qc = QC(curr_total)
-
     # Prepare input for k0
     k0 = efaq.initial_state
     for i, initial_bit in enumerate(k0):
@@ -103,7 +108,14 @@ def bqrlg_parallel(
     new_symbol_todo_bits = efaq.num_bits_symbols + efaq.num_bits_ndcs
     position_raw_symbols_bits = []
     position_symbols_bits = []
+
     for stage in range(bound):
+
+        # TODO Apply Grover amplification if enabled
+
+        # TODO Apply FnR amplification if enabled
+
+        position_state_output_bits = []
         curr_qc_size = qc.num_qubits
         qc.add_register(QR(new_symbol_todo_bits))
 
@@ -132,9 +144,11 @@ def bqrlg_parallel(
                 qc.barrier()
 
         # Add new output bit
+        curr_num_bits = qc.num_qubits
         for i in range(num_bits_states):
             qc.add_register(QR(1))
-            qc.cx(position_working_bits[i][-1], qc.num_qubits - 1)
+            qc.cx(position_working_bits[i][-1], curr_num_bits + i)
+            position_state_output_bits.append(curr_num_bits + i)
             if add_barrier_q:
                 qc.barrier()
 
@@ -154,7 +168,7 @@ def bqrlg_parallel(
 
         # Apply swap gates
         for i in range(num_bits_states):
-            qc.swap(qc.num_qubits - 1, i)
+            qc.swap(position_state_output_bits[i], i)
             if add_barrier_q:
                 qc.barrier()
         # --------------------------------------------------------------------
@@ -186,29 +200,5 @@ def bqrlg_parallel(
 # m := max(ancilla_bits(BDD_1), \dots, ancilla_bits(BDD_n))
 # to allocate the m qubits for this
 def bqrlg_series(efaq: EFAQ, bound: int) -> QC:
-    # TODO
-    (bdd, formulas) = delta_to_bdds(efaq)
-
-    forward_qcs = [bdd_to_qc(bdd, formula, True) for formula in formulas]
-    # backward_qcs = [qc.reverse_ops() for qc in forward_qcs]
-
-    num_qubits = max([qc.num_qubits for qc in forward_qcs])
-
-    qc = QC(num_qubits)
-
-    # Prepare input for k0
-    k0 = efaq.initial_state
-    for i, initial_bit in enumerate(k0):
-        print(">> initial_bits", initial_bit)
-        if initial_bit == "1":
-            qc.x(i)
-
-    # Simulate \delta over
-    # a string of size `bound'
-    for stage in range(bound):
-        print(">> stage", stage)
-
-    # Measure state bits and symbol bits
-    qc.add_register(CR(efaq.num_bits_states + bound * efaq.num_bits_symbols))
-
+    qc = QC(0)
     return qc
