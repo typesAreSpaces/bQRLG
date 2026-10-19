@@ -83,7 +83,7 @@ def efaq1() -> EFAQ:
 
     nfa = NFA(symbols, states, delta, initial_state, final_states)
     dfa = DFA(nfa)
-    efaq = EFAQ(
+    return EFAQ(
         dfa,
         {"p": "0", "q": "1"},
         {"x": "0", "y": "1"},
@@ -98,7 +98,6 @@ def efaq1() -> EFAQ:
             ("y", "q1"): "y",
         },
     )
-    return efaq
 
 
 def efaq2() -> EFAQ:
@@ -114,9 +113,49 @@ def efaq2() -> EFAQ:
 
     nfa = NFA(symbols, states, delta, initial_state, final_states)
     dfa = DFA(nfa)
-    efaq = EFAQ(dfa, {}, {}, {})
+    return EFAQ(dfa, {}, {}, {})
 
-    return efaq
+
+def efaq3() -> EFAQ:
+    symbols = {"p", "q"}
+    states = {"0", "1", "2", "3"}
+    delta = {}
+    delta[("0", "p")] = {"0"}
+    delta[("0", "q")] = {"0"}
+    delta[("1", "p")] = {"1"}
+    delta[("1", "q")] = {"2", "3"}
+    delta[("2", "p")] = {}
+    delta[("2", "q")] = {}
+    delta[("3", "p")] = {}
+    delta[("3", "q")] = {}
+    initial_state = "1"
+    final_states = {"3"}
+
+    nfa = NFA(symbols, states, delta, initial_state, final_states)
+    dfa = DFA(nfa)
+    return EFAQ(
+        dfa,
+        {"p": "0", "q": "1"},
+        {"0": "00", "1": "01", "2": "10", "3": "11"},
+        {
+            ("0", "p0"): "0",
+            ("0", "p1"): "0",
+            ("0", "q0"): "0",
+            ("0", "q1"): "0",
+            ("1", "p0"): "1",
+            ("1", "p1"): "1",
+            ("1", "q0"): "2",
+            ("1", "q1"): "3",
+            ("2", "p0"): "2",
+            ("2", "p1"): "2",
+            ("2", "q0"): "2",
+            ("2", "q1"): "3",
+            ("3", "p0"): "3",
+            ("3", "p1"): "3",
+            ("3", "q0"): "3",
+            ("3", "q1"): "3",
+        },
+    )
 
 
 def print_automata(efaq: EFAQ) -> None:
