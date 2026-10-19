@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from itertools import product
 
 from dd.autoref import BDD
@@ -169,8 +170,10 @@ def testing_delta_to_bdds(efaq: EFAQ) -> None:
 
 
 # At most n = 8
-def testing_bqrlg_parrallel(efaq: EFAQ, n: int, enable_grover: bool = False) -> None:
-    qc = bqrlg_parallel(efaq, n, True, enable_grover)
+def testing_bqrlg_parrallel(
+    efaq: EFAQ, n: int, amplification_schedule: Sequence[str] | None = None
+) -> None:
+    qc = bqrlg_parallel(efaq, n, True, amplification_schedule=amplification_schedule)
     get_info(qc, True, True, True, False)
 
 

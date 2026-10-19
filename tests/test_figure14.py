@@ -41,7 +41,7 @@ class Figure14Tests(unittest.TestCase):
                         amplification_schedule=schedule,
                         fnr_iterations=2,
                     )
-                    counts, probabilities = simulate(qc, 64, 2023)
+                    (counts, probabilities) = simulate(qc, 64, 2023)
                     self.assertEqual(sum(counts.values()), 64)
                     self.assertEqual(set(probabilities), set(expected[panel][key]))
                     for outcome, p in expected[panel][key].items():
@@ -54,17 +54,28 @@ class Figure14Tests(unittest.TestCase):
             amplification_schedule=("fnr", "grover"),
             fnr_iterations=1,
         )
-        _, probs = simulate(qc, 32, 2023)
+        (_, probs) = simulate(qc, 32, 2023)
         self.assertAlmostEqual(
-            sum(p for k, p in probs.items() if k.startswith("11")), 3 / 4
+            sum(p for (k, p) in probs.items() if k.startswith("11")), 3 / 4
         )
+
+    def test_default_schedule_is_no_amplification(self):
+        e = figure14_automaton("a")
+        _, default = simulate(bqrlg_parallel(e, 2), 16, 2023)
+        _, explicit = simulate(
+            bqrlg_parallel(e, 2, amplification_schedule=["none", "none"]), 16, 2023
+        )
+        self.assertEqual(default, explicit)
+
+    def test_amplification_options_are_keyword_only(self):
+        with self.assertRaises(TypeError):
+            bqrlg_parallel(figure14_automaton("a"), 2, False, ["grover", "grover"])
 
     def test_schedule_validation(self):
         e = figure14_automaton("a")
         for options in (
             {"amplification_schedule": ("fnr",)},
             {"amplification_schedule": ("none", "bad")},
-            {"amplification_schedule": ("fnr", "grover"), "enable_grover": True},
             {"amplification_schedule": ("fnr", "grover"), "reject_state": "0"},
         ):
             with self.assertRaises(ValueError):

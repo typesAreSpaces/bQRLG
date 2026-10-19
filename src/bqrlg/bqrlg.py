@@ -98,12 +98,11 @@ def bqrlg_parallel(
     efaq: EFAQ,
     bound: int,
     add_barrier_q: bool = False,
-    enable_grover: bool = False,
-    enable_fnr: bool = False,
+    *,
+    amplification_schedule: Sequence[str] | None = None,
     grover_iterations: int = 1,
     fnr_iterations: int = 1,
     reject_state: str | None = None,
-    amplification_schedule: Sequence[str] | None = None,
 ) -> QC:
     """Generate exactly ``bound`` symbols, optionally amplifying before each update.
 
@@ -119,8 +118,8 @@ def bqrlg_parallel(
     accepting states. FnR does not guarantee an accepting outcome.
 
     ``amplification_schedule`` optionally chooses "none", "grover", or "fnr"
-    for each stage, e.g. ("fnr", "grover") for Figure 14. It cannot be combined
-    with the global enable flags.
+    for each stage, e.g. ("fnr", "grover") for Figure 14. Omitting the schedule
+    applies no amplification. A supplied schedule must contain ``bound`` entries.
     """
     if bound < 0:
         raise ValueError("bound must be nonnegative")
@@ -129,10 +128,6 @@ def bqrlg_parallel(
     if fnr_iterations < 0:
         raise ValueError("fnr_iterations must be nonnegative")
     if amplification_schedule is not None:
-        if enable_grover or enable_fnr:
-            raise ValueError(
-                "amplification_schedule cannot be combined with enable flags"
-            )
         if len(amplification_schedule) != bound or any(
             mode not in {"none", "grover", "fnr"} for mode in amplification_schedule
         ):
@@ -141,17 +136,14 @@ def bqrlg_parallel(
             )
         schedule = tuple(amplification_schedule)
     else:
-        mode = "grover" if enable_grover else "fnr" if enable_fnr else "none"
-        schedule = (mode,) * bound
+        schedule = ("none",) * bound
     if reject_state is None:
         reject_state = "0" * efaq.num_bits_states
-    if (enable_fnr or "fnr" in schedule) and (
+    if "fnr" in schedule and (
         len(reject_state) != efaq.num_bits_states
         or any(bit not in "01" for bit in reject_state)
     ):
         raise ValueError("reject_state must be a binary encoding of the state width")
-    if enable_grover and enable_fnr:
-        raise ValueError("enable_grover and enable_fnr cannot both be True")
 
     (bdd, formulas) = delta_to_bdds(efaq)
 
