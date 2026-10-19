@@ -79,9 +79,15 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
     T = bdd.true
     F = bdd.false
 
-    num_variables = len(u.support)
+    # BDD levels refer to all declared variables, including unused inputs.
+    num_variables = len(bdd.vars)
     DBG(">> num_variables", num_variables)
     qc = QC(num_variables)
+    if u == T or u == F:
+        qc.add_register(QR(1))
+        if u == T:
+            qc.x(num_variables)
+        return qc
     qc_output = {}
     fresh_var = num_variables
 

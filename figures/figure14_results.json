@@ -1,0 +1,133 @@
+{
+  "shots": 1024,
+  "seed": 2023,
+  "fnr_iterations": 2,
+  "label_order": "final state (2 bits), first symbol, second symbol",
+  "note": "Fresh samples; bit labels follow the paper prose, not its inconsistent printed bins. Two FnR iterations reproduce panel b's fully accepting green series; the paper does not specify its iteration count.",
+  "panels": {
+    "a": {
+      "no_amplification": {
+        "label": "No amplification",
+        "schedule": [
+          "none",
+          "none"
+        ],
+        "counts": {
+          "0100": 237,
+          "1001": 145,
+          "1010": 124,
+          "1011": 61,
+          "1101": 140,
+          "1110": 126,
+          "1111": 191
+        },
+        "probabilities": {
+          "0100": 0.24999999999951888,
+          "1001": 0.12499999999439304,
+          "1010": 0.12499999999908064,
+          "1011": 0.06249999999927987,
+          "1101": 0.12500000000073686,
+          "1110": 0.1250000000023447,
+          "1111": 0.18750000000464806
+        },
+        "acceptance_probability": 0.4375000000077296,
+        "qubits": 19
+      },
+      "grover": {
+        "label": "Grover + Grover",
+        "schedule": [
+          "grover",
+          "grover"
+        ],
+        "counts": {
+          "1110": 522,
+          "1111": 502
+        },
+        "probabilities": {
+          "1110": 0.5000000000000074,
+          "1111": 0.5000000000000022
+        },
+        "acceptance_probability": 1.0000000000000098,
+        "qubits": 19
+      },
+      "fnr_grover": {
+        "label": "FnR + Grover",
+        "schedule": [
+          "fnr",
+          "grover"
+        ],
+        "counts": {
+          "1101": 502,
+          "1110": 121,
+          "1111": 401
+        },
+        "probabilities": {
+          "1101": 0.5000000000097952,
+          "1110": 0.12499999998469187,
+          "1111": 0.3750000000055218
+        },
+        "acceptance_probability": 1.0000000000000089,
+        "qubits": 21
+      }
+    },
+    "b": {
+      "no_amplification": {
+        "label": "No amplification",
+        "schedule": [
+          "none",
+          "none"
+        ],
+        "counts": {
+          "0000": 237,
+          "0001": 285,
+          "1010": 250,
+          "1011": 132,
+          "1111": 120
+        },
+        "probabilities": {
+          "0000": 0.25000000000305556,
+          "0001": 0.24999999999774497,
+          "1010": 0.2500000000001682,
+          "1011": 0.12499999999880085,
+          "1111": 0.12500000000024086
+        },
+        "acceptance_probability": 0.12500000000024086,
+        "qubits": 17
+      },
+      "grover": {
+        "label": "Grover + Grover",
+        "schedule": [
+          "grover",
+          "grover"
+        ],
+        "counts": {
+          "0000": 254,
+          "0001": 247,
+          "1111": 523
+        },
+        "probabilities": {
+          "0000": 0.2500000000178837,
+          "0001": 0.24999999998138547,
+          "1111": 0.5000000000007266
+        },
+        "acceptance_probability": 0.5000000000007266,
+        "qubits": 17
+      },
+      "fnr_grover": {
+        "label": "FnR + Grover",
+        "schedule": [
+          "fnr",
+          "grover"
+        ],
+        "counts": {
+          "1111": 1024
+        },
+        "probabilities": {
+          "1111": 0.9999999999999962
+        },
+        "acceptance_probability": 0.9999999999999962,
+        "qubits": 19
+      }
+    }
+  }
+}

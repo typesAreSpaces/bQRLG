@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from itertools import pairwise
+
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 from qiskit import ClassicalRegister as CR
@@ -66,6 +69,28 @@ def delta_to_bdds(efaq: EFAQ) -> tuple[BDD, list[Node]]:
     return (bdd, formulas)
 
 
+def _phase_flip_all_ones(qc: QC, positions: list[int]) -> None:
+    """Apply a phase of -1 exactly when all listed qubits are one."""
+    if len(positions) == 1:
+        qc.z(positions[0])
+    else:
+        target = positions[-1]
+        qc.h(target)
+        qc.mcx(positions[:-1], target)
+        qc.h(target)
+
+
+def _flip_and_rotate(qc: QC, flag: int, positions: list[int]) -> None:
+    """Conditionally flip the first input bit, then rotate its value to the end.
+
+    On two input bits this is exactly Figure 12: CX followed by CSWAP.
+    The ordered input register contains the symbol bits followed by NDC bits.
+    """
+    qc.cx(flag, positions[0])
+    for left, right in pairwise(positions):
+        qc.cswap(flag, left, right)
+
+
 # Observations:
 # - Fig. 11 from the original paper suggest the working bits
 # for each BDD are placed in parallel
@@ -75,9 +100,58 @@ def bqrlg_parallel(
     add_barrier_q: bool = False,
     enable_grover: bool = False,
     enable_fnr: bool = False,
+    grover_iterations: int = 1,
+    fnr_iterations: int = 1,
+    reject_state: str | None = None,
+    amplification_schedule: Sequence[str] | None = None,
 ) -> QC:
+    """Generate exactly ``bound`` symbols, optionally amplifying before each update.
+
+    Grover marks prospective accepting states, uncomputes the BDD workspace,
+    then diffuses only the current symbol/NDC register. A separate computation
+    advances the state afterward. One iteration reproduces the paper's example;
+    more iterations can overshoot and do not guarantee better acceptance.
+
+    FnR computes the prospective state, records a match to ``reject_state``
+    (all zeros by default), uncomputes, then conditionally flips and rotates the
+    symbol/NDC register. Every iteration retains a fresh rejection flag. The
+    caller must choose the designated reject state; it is not inferred from the
+    accepting states. FnR does not guarantee an accepting outcome.
+
+    ``amplification_schedule`` optionally chooses "none", "grover", or "fnr"
+    for each stage, e.g. ("fnr", "grover") for Figure 14. It cannot be combined
+    with the global enable flags.
+    """
+    if bound < 0:
+        raise ValueError("bound must be nonnegative")
+    if grover_iterations < 0:
+        raise ValueError("grover_iterations must be nonnegative")
+    if fnr_iterations < 0:
+        raise ValueError("fnr_iterations must be nonnegative")
+    if amplification_schedule is not None:
+        if enable_grover or enable_fnr:
+            raise ValueError(
+                "amplification_schedule cannot be combined with enable flags"
+            )
+        if len(amplification_schedule) != bound or any(
+            mode not in {"none", "grover", "fnr"} for mode in amplification_schedule
+        ):
+            raise ValueError(
+                "amplification_schedule needs one none/grover/fnr entry per stage"
+            )
+        schedule = tuple(amplification_schedule)
+    else:
+        mode = "grover" if enable_grover else "fnr" if enable_fnr else "none"
+        schedule = (mode,) * bound
+    if reject_state is None:
+        reject_state = "0" * efaq.num_bits_states
+    if (enable_fnr or "fnr" in schedule) and (
+        len(reject_state) != efaq.num_bits_states
+        or any(bit not in "01" for bit in reject_state)
+    ):
+        raise ValueError("reject_state must be a binary encoding of the state width")
     if enable_grover and enable_fnr:
-        raise ValueError("option_a and option_b cannot both be True")
+        raise ValueError("enable_grover and enable_fnr cannot both be True")
 
     (bdd, formulas) = delta_to_bdds(efaq)
 
@@ -110,11 +184,6 @@ def bqrlg_parallel(
     position_symbols_bits = []
 
     for stage in range(bound):
-
-        # TODO Apply Grover amplification if enabled
-
-        # TODO Apply FnR amplification if enabled
-
         position_state_output_bits = []
         curr_qc_size = qc.num_qubits
         qc.add_register(QR(new_symbol_todo_bits))
@@ -129,6 +198,87 @@ def bqrlg_parallel(
             range(curr_qc_size, curr_qc_size + new_symbol_todo_bits)
         )
 
+        stage_mode = schedule[stage]
+        if stage_mode != "none" and new_symbol_todo_bits:
+            input_positions = list(
+                range(curr_qc_size, curr_qc_size + new_symbol_todo_bits)
+            )
+            output_positions = [positions[-1] for positions in position_working_bits]
+
+            def apply_compute(
+                input_positions: list[int], backward: bool = False
+            ) -> None:
+                indices = (
+                    reversed(range(num_bits_states))
+                    if backward
+                    else range(num_bits_states)
+                )
+                for index in indices:
+                    circuit = backward_qcs[index] if backward else forward_qcs[index]
+                    qc.compose(
+                        circuit,
+                        [
+                            *range(num_bits_states),
+                            *input_positions,
+                            *position_working_bits[index],
+                        ],
+                        inplace=True,
+                    )
+                if add_barrier_q:
+                    qc.barrier()
+
+            for _ in range(grover_iterations if stage_mode == "grover" else 0):
+                apply_compute(input_positions)
+                # Match the whole next-state encoding, including zero bits.
+                # Distinct accepting encodings define disjoint marked subspaces.
+                for accepting in sorted(efaq.final_states):
+                    zero_positions = [
+                        q for q, bit in zip(output_positions, accepting) if bit == "0"
+                    ]
+                    for position in zero_positions:
+                        qc.x(position)
+                    _phase_flip_all_ones(qc, output_positions)
+                    for position in zero_positions:
+                        qc.x(position)
+                if add_barrier_q:
+                    qc.barrier()
+                apply_compute(input_positions, backward=True)
+                # H X (multi-controlled Z) X H; global sign is immaterial.
+                qc.h(input_positions)
+                qc.x(input_positions)
+                _phase_flip_all_ones(qc, input_positions)
+                qc.x(input_positions)
+                qc.h(input_positions)
+                if add_barrier_q:
+                    qc.barrier()
+
+            for iteration in range(fnr_iterations if stage_mode == "fnr" else 0):
+                flag = qc.num_qubits
+                qc.add_register(QR(1, f"fnr_flag_{stage}_{iteration}"))
+                apply_compute(input_positions)
+                # Mark exactly the designated reject encoding, not every
+                # nonaccepting state: intermediate states must remain usable.
+                zero_positions = [
+                    q for q, bit in zip(output_positions, reject_state) if bit == "0"
+                ]
+                for position in zero_positions:
+                    qc.x(position)
+                if len(output_positions) == 1:
+                    qc.cx(output_positions[0], flag)
+                else:
+                    qc.mcx(output_positions, flag)
+                for position in zero_positions:
+                    qc.x(position)
+                if add_barrier_q:
+                    qc.barrier()
+                apply_compute(input_positions, backward=True)
+                # The flag must remain: changing its input prevents safe
+                # uncomputation of the predicate that originally set it.
+                _flip_and_rotate(qc, flag, input_positions)
+                if add_barrier_q:
+                    qc.barrier()
+
+        # Copy only AFTER amplification, so no history bit blocks interference.
         # Apply forward circuits
         for i in range(num_bits_states):
             qc.compose(

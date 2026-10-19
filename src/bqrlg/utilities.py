@@ -1,4 +1,5 @@
 from itertools import product
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 from dd.autoref import BDD
@@ -33,7 +34,15 @@ def get_info(
     qc: QC, run_q: bool, show_circuit: bool, show_plot: bool, show_qasm: bool
 ) -> None:
     if show_circuit:
-        print(qc.draw(fold=-1))
+        figures_dir = Path(__file__).resolve().parents[2] / "figures"
+        figures_dir.mkdir(parents=True, exist_ok=True)
+        image_path = figures_dir / "circuit.png"
+        figure = qc.draw(output="mpl", fold=35)
+        try:
+            figure.savefig(image_path, dpi=200, bbox_inches="tight")
+        finally:
+            plt.close(figure)
+        print(f"Circuit saved to {image_path}")
     if run_q:
         run(qc, show_plot)
     if show_qasm:
