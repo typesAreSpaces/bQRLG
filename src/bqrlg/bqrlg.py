@@ -17,7 +17,8 @@ from .encoding_automata import EFAQ
 # swaps it with the first one to hold the previous_state
 def step_forward_backward(bdd: BDD, u: Node, use_blocks_q: bool) -> QC:
     step_forward = bdd_to_qc(bdd, u, False)
-    step_backward = step_forward.inverse()
+    # BDD synthesis uses self-inverse X, CX, and CCX gates.
+    step_backward = step_forward.reverse_ops()
     num_qubits = step_forward.num_qubits
     qc = QC(num_qubits)
 
@@ -146,7 +147,8 @@ def bqrlg_parallel(
     (bdd, formulas) = delta_to_bdds(efaq)
 
     forward_qcs = [bdd_to_qc(bdd, formula, False) for formula in formulas]
-    backward_qcs = [qc.inverse() for qc in forward_qcs]
+    # Reversing gate order undoes these self-inverse BDD gates.
+    backward_qcs = [qc.reverse_ops() for qc in forward_qcs]
 
     num_bits_states = efaq.num_bits_states
     # assert num_bits_states == len(forward_qcs)
