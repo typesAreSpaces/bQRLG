@@ -1,5 +1,3 @@
-from collections import deque
-
 from dd.autoref import BDD
 from dd.autoref import Function as Node
 from qiskit import QuantumCircuit as QC
@@ -72,7 +70,7 @@ def case_low_x_high_x(is_node_complemented: bool) -> QC:
     return qc
 
 
-# The input qubits are the first |u.support| qubits
+# Input qubits follow the declaration order of all BDD variables
 # the rest are ancilla bits
 # The output bit in qc.num_qubits - 1
 def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
@@ -91,34 +89,31 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
     qc_output = {}
     fresh_var = num_variables
 
-    queue = deque()
+    # A BDD is a shared DAG: reversing BFS is not a topological ordering.
+    # Iterative DFS postorder guarantees every child is computed first.
     todo = []
     visited = set()
-
-    queue.append(u)
-    while queue:
-        u = queue.popleft()
-
-        if u in visited or u == T or u == F:
+    stack = [(u, False)]
+    while stack:
+        node, expanded = stack.pop()
+        if node == T or node == F or node in visited:
             continue
+        if expanded:
+            visited.add(node)
+            todo.append(node)
+        else:
+            _, low, high = bdd.succ(node)
+            stack.extend([(node, True), (high, False), (low, False)])
 
-        todo.append(u)
-        visited.add(u)
-        # var is an integer/level index
-        var, low, high = bdd.succ(u)
-        queue.append(low)
-        queue.append(high)
-
-    while todo:
-        u = todo.pop()
-        if u == T or u == F:
-            continue
-
-        var, low, high = bdd.succ(u)
-        qc_output[u] = fresh_var
+    # BDD reordering changes levels, not the declared input-wire identities.
+    input_positions = {name: index for index, name in enumerate(bdd.vars)}
+    for node in todo:
+        level, low, high = bdd.succ(node)
+        var = input_positions[bdd.var_at_level(level)]
+        qc_output[node] = fresh_var
         qc.add_register(QR(1))
         fresh_var += 1
-        is_node_complemented = u.node < 0
+        is_node_complemented = node.node < 0
 
         if low == T:
             if high == T:
@@ -127,14 +122,14 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
                 DBG("Case low-1, high-0")
                 qc.compose(
                     case_low_1_high_0(is_node_complemented),
-                    [qc_output[u], var],
+                    [qc_output[node], var],
                     inplace=True,
                 )
             else:
                 DBG("Case low-1, high-?")
                 qc.compose(
                     case_low_1_high_x(is_node_complemented),
-                    [qc_output[u], var, qc_output[high]],
+                    [qc_output[node], var, qc_output[high]],
                     inplace=True,
                 )
         elif low == F:
@@ -142,7 +137,7 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
                 DBG("Case low-0, high-1")
                 qc.compose(
                     case_low_0_high_1(is_node_complemented),
-                    [qc_output[u], var],
+                    [qc_output[node], var],
                     inplace=True,
                 )
             elif high == F:
@@ -151,7 +146,7 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
                 DBG("Case low-0, high-?")
                 qc.compose(
                     case_low_0_high_x(is_node_complemented),
-                    [qc_output[u], var, qc_output[high]],
+                    [qc_output[node], var, qc_output[high]],
                     inplace=True,
                 )
         else:
@@ -159,21 +154,21 @@ def bdd_to_qc(bdd: BDD, u: Node, add_barrier_q: bool) -> QC:
                 DBG("Case low-?, high-1")
                 qc.compose(
                     case_low_x_high_1(is_node_complemented),
-                    [qc_output[u], var, qc_output[low]],
+                    [qc_output[node], var, qc_output[low]],
                     inplace=True,
                 )
             elif high == F:
                 DBG("Case low-?, high-0")
                 qc.compose(
                     case_low_x_high_0(is_node_complemented),
-                    [qc_output[u], var, qc_output[low]],
+                    [qc_output[node], var, qc_output[low]],
                     inplace=True,
                 )
             else:
                 DBG("Case low-?, high-?")
                 qc.compose(
                     case_low_x_high_x(is_node_complemented),
-                    [qc_output[u], var, qc_output[low], qc_output[high]],
+                    [qc_output[node], var, qc_output[low], qc_output[high]],
                     inplace=True,
                 )
 

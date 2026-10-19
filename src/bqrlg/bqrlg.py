@@ -17,7 +17,7 @@ from .encoding_automata import EFAQ
 # swaps it with the first one to hold the previous_state
 def step_forward_backward(bdd: BDD, u: Node, use_blocks_q: bool) -> QC:
     step_forward = bdd_to_qc(bdd, u, False)
-    step_backward = step_forward.reverse_ops()
+    step_backward = step_forward.inverse()
     num_qubits = step_forward.num_qubits
     qc = QC(num_qubits)
 
@@ -46,25 +46,23 @@ def delta_to_bdds(efaq: EFAQ) -> tuple[BDD, list[Node]]:
 
     formulas = [bdd.false for _ in range(n)]
 
-    # Iterate over each row of efaq.delta
-    # i.e., efaq.delta(_input) = _output
+    # Build each input cube once, sharing it across all output formulas.
     for _input, _output in efaq.delta.items():
-        _output = _output[:n]
-
-        # Update the i^{th} bdd
-        for i, bit_k in enumerate(_output):
-            if bit_k == "0":
-                continue
-
-            cube = bdd.true
-
-            for var, bit in zip(variables, _input):
-                if bit == "1":
-                    cube &= bdd.var(var)
-                else:
-                    cube &= ~bdd.var(var)
-
-            formulas[i] |= cube
+        if (
+            len(_input) != num_vars
+            or len(_output) != num_vars
+            or any(bit not in "01" for bit in _input + _output)
+            or _output[n:] != _input[n:]
+        ):
+            raise ValueError(
+                "EFAQ transitions must preserve inputs and match the declared bit widths"
+            )
+        cube = bdd.true
+        for var, bit in zip(variables, _input):
+            cube &= bdd.var(var) if bit == "1" else ~bdd.var(var)
+        for i, bit in enumerate(_output[:n]):
+            if bit == "1":
+                formulas[i] |= cube
 
     return (bdd, formulas)
 
@@ -138,7 +136,7 @@ def bqrlg_parallel(
     else:
         schedule = ("none",) * bound
     if reject_state is None:
-        reject_state = "0" * efaq.num_bits_states
+        reject_state = getattr(efaq, "reject_state", None) or "0" * efaq.num_bits_states
     if "fnr" in schedule and (
         len(reject_state) != efaq.num_bits_states
         or any(bit not in "01" for bit in reject_state)
@@ -148,7 +146,7 @@ def bqrlg_parallel(
     (bdd, formulas) = delta_to_bdds(efaq)
 
     forward_qcs = [bdd_to_qc(bdd, formula, False) for formula in formulas]
-    backward_qcs = [qc.reverse_ops() for qc in forward_qcs]
+    backward_qcs = [qc.inverse() for qc in forward_qcs]
 
     num_bits_states = efaq.num_bits_states
     # assert num_bits_states == len(forward_qcs)
@@ -342,5 +340,4 @@ def bqrlg_parallel(
 # m := max(ancilla_bits(BDD_1), \dots, ancilla_bits(BDD_n))
 # to allocate the m qubits for this
 def bqrlg_series(efaq: EFAQ, bound: int) -> QC:
-    qc = QC(0)
-    return qc
+    raise NotImplementedError("Serial BDD workspace reuse is not implemented")

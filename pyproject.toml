@@ -7,9 +7,9 @@ name = "bqrlg"
 version = "0.1.0"
 description = "Quantum circuit tools for BDD-encoded regular languages"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
-    "dd>=0.6",
+    "dd>=0.5.7",
     "matplotlib>=3.7",
     "pylatexenc>=2.10",
     "qiskit>=1.0",
@@ -23,7 +23,7 @@ bqrlg = "bqrlg.__main__:main"
 where = ["src"]
 
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
 extraPaths = ["src"]

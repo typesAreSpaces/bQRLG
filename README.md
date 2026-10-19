@@ -51,3 +51,26 @@ qc = bqrlg_parallel(
 `grover_iterations` and `fnr_iterations` control the repetitions in stages
 that select their respective operation. The previous boolean amplification
 flags have been removed; callers must use a schedule instead.
+
+## Automaton encoding and validation
+
+NFAs must have nonempty state and symbol sets and valid transition endpoints.
+Missing transitions go to an absorbing rejecting sink (reusing one when
+available). Spare nondeterministic choice codes repeat valid successors
+cyclically, so they cannot introduce new accepted words. This policy preserves
+the language but need not sample successors uniformly.
+
+State, symbol, and choice assignments are sorted for reproducibility. Explicit
+binary encodings must be unique, have the declared width, and cover all DFA
+states, including any generated rejecting sink. Unused binary state/symbol
+codes transition to that sink. Singleton alphabets and deterministic choices
+use empty bit strings; state registers retain at least one qubit. The encoded
+reject state is exposed as `efaq.reject_state` and used by default for FnR when
+available. Construction does not mutate supplied encodings or DFA transitions.
+
+`bqrlg_series` is not implemented and raises `NotImplementedError` rather than
+returning an empty circuit. Serial scratch reuse and synthesis shared across
+multiple output bits remain future optimizations.
+
+Python 3.10 is supported; the dependency resolver selects a compatible `dd`
+release (the regression suite is checked with `dd` 0.5.7 on Python 3.10).
