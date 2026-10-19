@@ -41,7 +41,8 @@ qc = bqrlg_parallel(efaq, bound=2)  # No amplification
 qc = bqrlg_parallel(efaq, bound=2, amplification_schedule=["grover"] * 2)
 qc = bqrlg_parallel(efaq, bound=2, amplification_schedule=["fnr"] * 2)
 qc = bqrlg_parallel(
-    efaq, bound=2,
+    efaq,
+    bound=2,
     amplification_schedule=["fnr", "grover"],
     fnr_iterations=2,
     reject_state="00",  # Must match your automaton's reject encoding
